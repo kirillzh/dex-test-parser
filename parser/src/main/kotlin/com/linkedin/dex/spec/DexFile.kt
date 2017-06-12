@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class DexFile(byteBuffer: ByteBuffer) {
-    val byteBuffer: ByteBuffer
+    val byteBuffer: ByteBuffer = byteBuffer.asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN)
     val headerItem: HeaderItem
     val stringIds: Array<StringIdItem>
     val typeIds: Array<TypeIdItem>
@@ -29,7 +29,6 @@ class DexFile(byteBuffer: ByteBuffer) {
     }
 
     init {
-        this.byteBuffer = byteBuffer.asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN)
         this.byteBuffer.position(0)
         headerItem = HeaderItem(this.byteBuffer)
         headerItem.validate()

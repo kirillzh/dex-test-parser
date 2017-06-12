@@ -4,6 +4,7 @@
  */
 package com.linkedin.dex.parser
 
+import com.beust.klaxon.json
 import com.linkedin.dex.spec.DexFile
 import java.io.File
 import java.io.FileInputStream
@@ -34,22 +35,29 @@ class DexParser private constructor() {
 
             val allItems = Companion.findTestNames(apkPath)
 
-            java.nio.file.Files.write(File(outputPath + "/AllTests.txt").toPath(), allItems)
+            val testsJson = json {
+                array(allItems.map {
+                    obj(
+                            "class" to it.className,
+                            "method" to it.methodName,
+                            "annotations" to array(it.annotations))
+                })
+            }.toJsonString(prettyPrint = true)
+
+            File("$outputPath/AllTests.json").writeText(testsJson)
         }
 
         /**
          * Parse the apk found at apkPath and returns the list of test names found in the apk
          */
-        @JvmStatic fun findTestNames(apkPath: String): List<String> {
-            var allItems: List<String> = emptyList()
+        @JvmStatic fun findTestNames(apkPath: String): List<TestMethod> {
+            var allItems = emptyList<TestMethod>()
 
             val time = kotlin.system.measureTimeMillis {
                 val dexFiles = Companion.readDexFiles(apkPath)
 
-                val junit3Items = findJUnit3Tests(dexFiles).sorted()
-                val junit4Items = dexFiles.flatMap { it.findJUnit4Tests() }.sorted()
-
-                allItems = junit3Items.plus(junit4Items).sorted()
+                // val junit3Items = findJUnit3Tests(dexFiles).sorted()
+                allItems = dexFiles.flatMap { it.findJUnit4Tests() }
 
                 val count = allItems.count()
                 println("Found $count fully qualified test methods")

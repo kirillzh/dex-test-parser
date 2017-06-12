@@ -65,7 +65,7 @@ private fun DexFile.findJUnit3Tests(descriptors: MutableSet<String>): List<Strin
 
     val testClasses = findClassesWithSuperClass(descriptors)
     testClasses.map { Pair(it, findMethodNames(it)) }
-            .map { Pair(formatClassName(it.first), it.second) }
+            .map { Pair(formatClassDefItemName(it.first), it.second) }
             .filter { it.second.isNotEmpty() }
             .map { Pair(it.first, it.second.filter { it.startsWith("test") }) }
             .flatMap { pair -> pair.second.map { pair.first + it }.toCollection(mutableListOf()) }
